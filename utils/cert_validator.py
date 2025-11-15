@@ -3,6 +3,7 @@
 src/utils/cert_validator.py
 Certificate validation utilities for mutual TLS authentication
 Validates: signature chain, expiry, hostname/CN, trusted CA
+verifies X.509 certificates
 """
 
 # FIX 1: Import 'UTC' from datetime and 'padding'
