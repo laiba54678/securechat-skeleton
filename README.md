@@ -1,111 +1,317 @@
+# SecureChat - Cryptographic Secure Messaging System
 
-# SecureChat – Assignment #2 (CS-3002 Information Security, Fall 2025)
-
-This repository is the **official code skeleton** for your Assignment #2.  
-You will build a **console-based, PKI-enabled Secure Chat System** in **Python**, demonstrating how cryptographic primitives combine to achieve:
-
-**Confidentiality, Integrity, Authenticity, and Non-Repudiation (CIANR)**.
+**Course:** Information Security (Fall 2025)  
+**University:** FAST-NUCES  
+**GitHub Repository:** https://github.com/laiba54678/securechat-skeleton
 
 
-## 🧩 Overview
+## 📋 Overview
 
-You are provided only with the **project skeleton and file hierarchy**.  
-Each file contains docstrings and `TODO` markers describing what to implement.
+SecureChat is a console-based secure messaging system implementing full CIANR (Confidentiality, Integrity, Authenticity, Non-Repudiation, Reliability) using:
+- **PKI**: X.509 certificates with Root CA
+- **Encryption**: AES-128 in CBC mode with PKCS#7 padding
+- **Key Exchange**: Diffie-Hellman (2048-bit MODP group)
+- **Signatures**: RSA with PSS padding
+- **Hashing**: SHA-256
 
-Your task is to:
-- Implement the **application-layer protocol**.
-- Integrate cryptographic primitives correctly to satisfy the assignment spec.
-- Produce evidence of security properties via Wireshark, replay/tamper tests, and signed session receipts.
+## 🏗️ System Architecture
+```
+┌─────────────┐                      ┌─────────────┐
+│   CLIENT    │◄────────────────────►│   SERVER    │
+│             │   Mutual TLS Auth    │             │
+│  • Client   │   DH Key Exchange    │  • Server   │
+│    Cert     │   AES-128 Encrypted  │    Cert     │
+│  • Private  │   RSA Signatures     │  • MySQL DB │
+│    Key      │   Transcripts        │  • Logs     │
+└─────────────┘                      └─────────────┘
+```
 
-## 🏗️ Folder Structure
+## 🔒 Security Features
+
+### Phase 1: Control Plane (Certificate Validation)
+- Mutual certificate exchange
+- CA signature verification
+- Expiry and validity checks
+- Hostname/CN validation
+
+### Phase 2: Authentication
+- Salted password hashing (SHA-256)
+- Encrypted credential transmission
+- MySQL secure storage
+- Session logging
+
+### Phase 3: Key Agreement
+- Diffie-Hellman key exchange
+- RFC 3526 2048-bit MODP group
+- SHA-256 key derivation (truncated to 16 bytes)
+
+### Phase 4: Data Plane (Encrypted Messaging)
+- AES-128 CBC encryption with PKCS#7 padding
+- Per-message RSA signatures
+- Sequence number replay protection
+- Timestamp freshness validation
+
+### Phase 5: Teardown (Non-Repudiation)
+- Append-only transcripts
+- SHA-256 transcript hashing
+- RSA-signed session receipts
+- Offline verification support
+
+## 📁 Project Structure
 ```
 securechat-skeleton/
-├─ app/
-│  ├─ client.py              # Client workflow (plain TCP, no TLS)
-│  ├─ server.py              # Server workflow (plain TCP, no TLS)
-│  ├─ crypto/
-│  │  ├─ aes.py              # AES-128(ECB)+PKCS#7 (use cryptography lib)
-│  │  ├─ dh.py               # Classic DH helpers + key derivation
-│  │  ├─ pki.py              # X.509 validation (CA signature, validity, CN)
-│  │  └─ sign.py             # RSA SHA-256 sign/verify (PKCS#1 v1.5)
-│  ├─ common/
-│  │  ├─ protocol.py         # Pydantic message models (hello/login/msg/receipt)
-│  │  └─ utils.py            # Helpers (base64, now_ms, sha256_hex)
-│  └─ storage/
-│     ├─ db.py               # MySQL user store (salted SHA-256 passwords)
-│     └─ transcript.py       # Append-only transcript + transcript hash
-├─ scripts/
-│  ├─ gen_ca.py              # Create Root CA (RSA + self-signed X.509)
-│  └─ gen_cert.py            # Issue client/server certs signed by Root CA
-├─ tests/manual/NOTES.md     # Manual testing + Wireshark evidence checklist
-├─ certs/.keep               # Local certs/keys (gitignored)
-├─ transcripts/.keep         # Session logs (gitignored)
-├─ .env.example              # Sample configuration (no secrets)
-├─ .gitignore                # Ignore secrets, binaries, logs, and certs
-├─ requirements.txt          # Minimal dependencies
-└─ .github/workflows/ci.yml  # Compile-only sanity check (no execution)
+├── certs/                    # Certificates (gitignored)
+├── src/
+│   ├── server.py            # Chat server
+│   ├── client.py            # Chat client
+│   └── utils/
+│       ├── crypto_utils.py  # Crypto operations
+│       ├── cert_validator.py # Certificate validation
+│       └── db_utils.py      # Database operations
+├── scripts/
+│   ├── gen_ca.py            # Generate Root CA
+│   ├── gen_cert.py          # Generate certificates
+│   └── verify_receipt.py    # Verify transcripts
+├── tests/
+│   └── test_invalid_cert.py # Certificate tests
+├── transcripts/             # Chat transcripts (gitignored)
+├── logs/                    # System logs
+├── .env                     # Configuration (gitignored)
+├── .env.example             # Configuration template
+├── requirements.txt         # Python dependencies
+└── README.md               # This file
 ```
 
-## ⚙️ Setup Instructions
+## 🚀 Installation & Setup
 
-1. **Fork this repository** to your own GitHub account(using official nu email).  
-   All development and commits must be performed in your fork.
+### Prerequisites
+- Python 3.8+
+- MySQL 8.0+
+- Git
 
-2. **Set up environment**:
-   ```bash
-   python3 -m venv .venv && source .venv/bin/activate
-   pip install -r requirements.txt
-   cp .env.example .env
-   ```
+### Step 1: Clone Repository
+```bash
+git clone https://github.com/laiba54678/securechat-skeleton
 
-3. **Initialize MySQL** (recommended via Docker):
-   ```bash
-   docker run -d --name securechat-db        -e MYSQL_ROOT_PASSWORD=rootpass        -e MYSQL_DATABASE=securechat        -e MYSQL_USER=scuser        -e MYSQL_PASSWORD=scpass        -p 3306:3306 mysql:8
-   ```
+cd securechat-skeleton
+```
 
-4. **Create tables**:
-   ```bash
-   python -m app.storage.db --init
-   ```
+### Step 2: Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-5. **Generate certificates** (after implementing the scripts):
-   ```bash
-   python scripts/gen_ca.py --name "FAST-NU Root CA"
-   python scripts/gen_cert.py --cn server.local --out certs/server
-   python scripts/gen_cert.py --cn client.local --out certs/client
-   ```
+### Step 3: Setup MySQL Database
+```sql
+CREATE DATABASE securechat_db;
+CREATE USER 'securechat_user'@'localhost' IDENTIFIED BY 'SecurePass123!';
+GRANT ALL PRIVILEGES ON securechat_db.* TO 'securechat_user'@'localhost';
+FLUSH PRIVILEGES;
 
-6. **Run components** (after implementation):
-   ```bash
-   python -m app.server
-   # in another terminal:
-   python -m app.client
-   ```
+USE securechat_db;
 
-## 🚫 Important Rules
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    salt VARBINARY(16) NOT NULL,
+    pwd_hash CHAR(64) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP NULL
+);
 
-- **Do not use TLS/SSL or any secure-channel abstraction**  
-  (e.g., `ssl`, HTTPS, WSS, OpenSSL socket wrappers).  
-  All crypto operations must occur **explicitly** at the application layer.
+CREATE TABLE session_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL,
+    session_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    session_end TIMESTAMP NULL,
+    client_cert_fingerprint VARCHAR(64)
+);
+```
 
-- You are **not required** to implement AES, RSA, or DH math, Use any of the available libraries.
-- Do **not commit secrets** (certs, private keys, salts, `.env` values).
-- Your commits must reflect progressive development — at least **10 meaningful commits**.
+### Step 4: Configure Environment
+```bash
+cp .env.example .env
+# Edit .env with your MySQL credentials
+```
 
-## 🧾 Deliverables
+### Step 5: Generate Certificates
+```bash
+# Generate Root CA
+python scripts/gen_ca.py
 
-When submitting on Google Classroom (GCR):
+# Generate Server Certificate
+python scripts/gen_cert.py --type server --name localhost
 
-1. A ZIP of your **GitHub fork** (repository).
-2. MySQL schema dump and a few sample records.
-3. Updated **README.md** explaining setup, usage, and test outputs.
-4. `RollNumber-FullName-Report-A02.docx`
-5. `RollNumber-FullName-TestReport-A02.docx`
+# Generate Client Certificate
+python scripts/gen_cert.py --type client --name client_user
+```
 
-## 🧪 Test Evidence Checklist
+## 🎮 Usage
 
-✔ Wireshark capture (encrypted payloads only)  
-✔ Invalid/self-signed cert rejected (`BAD_CERT`)  
-✔ Tamper test → signature verification fails (`SIG_FAIL`)  
-✔ Replay test → rejected by seqno (`REPLAY`)  
-✔ Non-repudiation → exported transcript + signed SessionReceipt verified offline  
+### Start Server
+```bash
+python src/server.py
+```
+
+Expected output:
+```
+[+] Server certificate and key loaded
+[+] Certificate validator initialized
+[+] Connected to MySQL database: securechat_db
+
+[*] Secure Chat Server started on 0.0.0.0:5555
+[*] Waiting for client connection...
+```
+
+### Start Client (in another terminal)
+```bash
+python src/client.py
+```
+
+Follow prompts to:
+1. Register or login
+2. Send encrypted messages
+3. Type `quit` to end session
+
+## 🧪 Testing
+
+### Test Certificate Validation
+```bash
+python tests/test_invalid_cert.py
+```
+
+Tests:
+- ✅ Valid certificate acceptance
+- ❌ Self-signed certificate rejection
+- ❌ Expired certificate rejection
+- ❌ Not-yet-valid certificate rejection
+
+### Verify Transcripts
+```bash
+# Verify message signatures
+python scripts/verify_receipt.py transcript transcripts/client_testuser_*.txt certs/client_cert.pem
+
+# Verify session receipt
+python scripts/verify_receipt.py receipt transcripts/client_receipt_*.json transcripts/client_testuser_*.txt certs/client_cert.pem
+
+# Test tamper detection
+python scripts/verify_receipt.py tamper transcripts/client_testuser_*.txt certs/client_cert.pem
+```
+
+## 📊 Wireshark Analysis
+
+### Capture Traffic
+1. Start Wireshark
+2. Capture on loopback interface (lo or Loopback)
+3. Apply filter: `tcp.port == 5555`
+4. Run server and client
+5. Save capture as `.pcapng`
+
+### Verify Encryption
+- All messages are base64-encoded JSON
+- Ciphertext is encrypted (no plaintext visible)
+- Signatures are present on all messages
+
+## 📝 Message Protocol
+
+### Control Plane
+```json
+{"type": "hello", "client_cert": "...", "nonce": "..."}
+{"type": "server_hello", "server_cert": "...", "nonce": "..."}
+```
+
+### Authentication
+```json
+{"type": "register", "data": "<encrypted>"}
+{"type": "login", "data": "<encrypted>"}
+```
+
+### Key Exchange
+```json
+{"type": "dh_client", "g": 2, "p": "...", "A": "..."}
+{"type": "dh_server", "B": "..."}
+```
+
+### Data Plane
+```json
+{
+  "type": "msg",
+  "seqno": 1,
+  "ts": 1705234567890,
+  "ct": "<base64_ciphertext>",
+  "sig": "<base64_signature>"
+}
+```
+
+### Teardown
+```json
+{
+  "type": "receipt",
+  "peer": "client",
+  "first_seq": 1,
+  "last_seq": 5,
+  "transcript_sha256": "...",
+  "sig": "<base64_signature>"
+}
+```
+
+## 🔐 Security Analysis
+
+| Goal | Implementation | Attack Prevention |
+|------|----------------|-------------------|
+| **Confidentiality** | AES-128 CBC + PKCS#7 | Eavesdropping |
+| **Integrity** | SHA-256 + RSA signatures | Tampering, Modification |
+| **Authenticity** | X.509 certificates + CA | Impersonation, MITM |
+| **Non-Repudiation** | Signed transcripts + receipts | Denial of communication |
+| **Replay Protection** | Sequence numbers + timestamps | Replay attacks |
+
+## 🐛 Troubleshooting
+
+### Import Errors
+```bash
+# Make sure you're in the project root
+cd securechat-skeleton
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### MySQL Connection Failed
+```bash
+# Check MySQL is running
+# Windows:
+net start MySQL80
+
+# Check credentials in .env file
+DB_USER=securechat_user
+DB_PASSWORD=SecurePass123!
+```
+
+### Certificate Not Found
+```bash
+# Generate all certificates
+python scripts/gen_ca.py
+python scripts/gen_cert.py --type server --name localhost
+python scripts/gen_cert.py --type client --name client_user
+
+# Verify they exist
+dir certs
+```
+
+## 📚 References
+
+- RFC 3526 - Diffie-Hellman Groups
+- RFC 5280 - X.509 Certificate Profiles
+- NIST SP 800-38A - Block Cipher Modes
+- PKCS#7 - Cryptographic Message Syntax
+
+## 👤 Author
+
+**Your Name**  
+Roll Number: 22i-2359
+FAST-NUCES Islamabad
+
+## 📄 License
+
+Educational project for Information Security course.
