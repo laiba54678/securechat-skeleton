@@ -3,6 +3,7 @@
 src/server.py
 Secure Chat Server with mutual TLS authentication
 Handles: certificate validation, registration, login, DH key exchange, encrypted messaging
+implements session teardown with non-repudiation
 """
 
 import socket
