@@ -2,7 +2,8 @@
 """
 src/utils/db_utils.py
 MySQL database operations for user registration and authentication
-Handles: user creation, credential storage, login verification
+Handles: user creation, credential storage, login verification\
+            session logging
 """
 
 import pymysql
