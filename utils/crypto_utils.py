@@ -3,6 +3,7 @@
 src/utils/crypto_utils.py
 Core cryptographic utilities for SecureChat system
 Handles: AES encryption, RSA signatures, DH key exchange, SHA-256 hashing
+handles key loading and certificate fingerprinting
 """
 
 import os
