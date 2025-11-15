@@ -12,7 +12,7 @@ from cryptography.x509.oid import NameOID, ExtensionOID
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
-
+# Generate Root CA Certificate
 def generate_root_ca():
     """Generate a self-signed root CA certificate"""
     
