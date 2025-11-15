@@ -1,0 +1,60 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+
+# Certificates and private keys - NEVER COMMIT THESE!
+certs/*.key
+certs/*.pem
+*.key
+*.pem
+
+# Environment files with passwords
+.env
+.env.local
+
+# Database files
+*.db
+*.sql
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.Python
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Logs and transcripts
+logs/*.log
+transcripts/*.txt
+transcripts/*.json
+
+# Test results
+test_results/
+*.pcap
+*.pcapng
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Byte-compiled / optimized / DLL files
+*.so
+*.dll
+*.dylib
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
