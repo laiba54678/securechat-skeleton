@@ -82,7 +82,7 @@ securechat-skeleton/
 └── README.md               # This file
 ```
 
-## 🚀 Installation & Setup
+## 🚀 Installation & Setup.
 
 ### Prerequisites
 - Python 3.8+
