@@ -3,6 +3,7 @@
 scripts/verify_receipt.py
 Offline verification of session receipts and transcripts
 Verifies: message signatures, transcript hash, session receipt signature
+verifies authenticity and integrity of chat transcripts and receipts
 """
 
 import sys
